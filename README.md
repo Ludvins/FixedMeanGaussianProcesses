@@ -6,7 +6,7 @@ MAP  |  LLA | FMGP
 :-------------------------:|:-------------------------:|:-:|
 ![](demos/plots/synthetic_regression_map.png)  |  ![](demos/plots/synthetic_regression_lla.png) | ![](demos/plots/synthetic_regression_fmgp.png)
 MFVI  | GP | HMC
-![](demos/plots/synthetic_regression_mfvi.png)  |  ![](demos/plots/synthetic_regression_gp.png) | ![](demos/plots/synthetic_regression_hmc.png)
+![](demos/plots/synthetic_regression_MFVI.png)  |  ![](demos/plots/synthetic_regression_GP.png) | ![](demos/plots/synthetic_regression_HMC.png)
 
 ## Requirements
 
