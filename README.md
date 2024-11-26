@@ -1,24 +1,6 @@
 # Fixed Mean Gaussian Processes
 
-Recently, there has been an increasing interest in performing \emph{post-hoc} uncertainty 
-estimation about the predictions of pre-trained deep neural networks (DNNs).  
-Given a pre-trained DNN via back-propagation, post-hoc uncertainty estimation methods simply 
-provide a confidence of the DNN in the predictions made. This process enhances the predictions 
-of the DNN with associated error bars, without deteriorating the prediction accuracy.
-With such a goal, we introduce here a new family of 
-sparse variational Gaussian processes (GPs), where the posterior mean is fixed to any continuous function, 
-when a universal kernel is used. We intentionally fix such a mean to the output of the DNN.
-Thus, our approach allows for effectively learning the predictive variances of a GP
-with the same predictive mean as the output of the DNN. The resulting GP predictive 
-variances estimate the DNN prediction uncertainty. Our approach allows for
-efficient optimization using variational inference (VI), 
-enabling stochastic optimization, with training costs that remain
-independent of the number of training points, scaling to 
-very large datasets such as ImageNet. The proposed method, fixed mean GP (FMGP),  
-is architecture-agnostic, 
-relying solely on the outputs of the pre-trained model to adjust the 
-predictive variances. Experimental results demonstrate improved performance in 
-both uncertainty estimation and computational efficiency with respect to state-of-the-art methods.
+Recently, there has been an increasing interest in performing *post-hoc* uncertainty estimation about the predictions of pre-trained deep neural networks (DNNs).  Given a pre-trained DNN via back-propagation, post-hoc uncertainty estimation methods simply  provide a confidence of the DNN in the predictions made. This process enhances the predictions of the DNN with associated error bars, without deteriorating the prediction accuracy. With such a goal, we introduce here a new family of sparse variational Gaussian processes (GPs), where the posterior mean is fixed to any continuous function, when a universal kernel is used. We intentionally fix such a mean to the output of the DNN. Thus, our approach allows for effectively learning the predictive variances of a GP with the same predictive mean as the output of the DNN. The resulting GP predictive variances estimate the DNN prediction uncertainty. Our approach allows for efficient optimization using variational inference (VI), enabling stochastic optimization, with training costs that remain independent of the number of training points, scaling to very large datasets such as ImageNet. The proposed method, fixed mean GP (FMGP), is architecture-agnostic, relying solely on the outputs of the pre-trained model to adjust the predictive variances. Experimental results demonstrate improved performance in both uncertainty estimation and computational efficiency with respect to state-of-the-art methods.
 
 MAP  |  LLA | FMGP
 :-------------------------:|:-------------------------:|:-:|
