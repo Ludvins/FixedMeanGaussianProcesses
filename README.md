@@ -22,14 +22,14 @@ both uncertainty estimation and computational efficiency with respect to state-o
 
 MAP  |  LLA | FMGP
 :-------------------------:|:-------------------------:|:-:|
-![](demos/plots/LLA.png)  |  ![](demos/plots/VaLLA_inducing.png) | ![](demos/plots/ELLA.png)
+![](demos\plots\synthetic_regression_map.png)  |  ![](demos\plots\synthetic_regression_lla.png) | ![](demos\plots\synthetic_regression_fmgp.png)
 MFVI  | GP | HMC
-![](demos/plots/LL-LLA.png)  |  ![](demos/plots/Diag-LLA.png) | ![](demos/plots/LLA-KFAC.png)
+![](demos\plots\synthetic_regression_mfvi.png)  |  ![](demos\plots\synthetic_regression_gp.png) | ![](demos\plots\synthetic_regression_hmc.png)
 
 ## Requirements
 
-The used version of Python was [![Python](https://img.shields.io/badge/Python_3.10.10-blue)](https://www.python.org/downloads/release/python-31010/) with 
- [![Pytorch](https://img.shields.io/badge/PyTorch_1.11-purple)](https://pytorch.org/get-started/previous-versions/). The latter is required by the use of Backpack for automatic differentiation to compute the jacobians.
+The used version of Python was [![Python](https://img.shields.io/badge/Python_3.11.9-blue)](https://www.python.org/downloads/release/python-3119/) with 
+ [![Pytorch](https://img.shields.io/badge/PyTorch_2.2-purple)](https://pytorch.org/get-started/previous-versions/).
 
 To create an environment and reproduce the experiments perform the following actions:
 1. Create environment as `python -m venv .venv`
@@ -37,8 +37,6 @@ To create an environment and reproduce the experiments perform the following act
 3. Update pip as `pip install --upgrade pip`
 4. Install requirements as `pip install -r requirements.txt`
 
-> [!NOTE]  
-> [![Pytorch](https://img.shields.io/badge/PyTorch_2.x-purple)](https://pytorch.org/get-started/previous-versions/) can be used if BackPack is not loaded.
 
 ## Folder Structure
 
@@ -48,24 +46,24 @@ The repository is structured in folders as:
     ├── data                    # Contains used datasets (default download folder)
     ├── demos                   # Jupyter Notebooks for synthetic experiments
     │   ├── plots               # Stores the plots form the notebooks
-    │   ├── synthetic.ipynb     # Notebook for Figure 1
-    │   ├── validation.ipynb    # Notebook for Figure 6    
-    │   └── increase_M.ipynb    # Notebook for Figure 7    
+    │   ├── synthetic.ipynb     # Notebook for Figure 1 
     ├── results                 # Obtained results in .csv format
     │   └─ *.csv
     ├── scripts                 # Python scripts for experiments
     │   ├── regression      
     │   │   └─ *.py  
-    │   ├── multiclass
+    │   ├── cifar10
     │   │   └─ *.py  
-    │   └── multiclass_resnet
+    │   ├── imagenet
     │   │   └─ *.py  
-    ├── src                     # VaLLA and ELLA classes definition
-    │   ├─ valla.py
-    │   ├─ ella.py
-    │   └─ utils.py
-    ├── utils                   # Datasets, Models, Metrics and Torch Misc
-    ├── weights                 # MAP solution weights for used models  
+    │   └── qm9
+    │   │   └─ *.py  
+    ├── bayesipy                # Code for different methods
+    │   ├─ fmgp
+    │   ├─ laplace
+    │   ├─ mfvi
+    │   ├─ sngp
+    │   └─ utils
     ├── LICENSE
     ├── README.md
     └── requirements.txt
@@ -74,6 +72,31 @@ The repository is structured in folders as:
 > Only Synthetic and Airline datasets are in the `data` folder by default as they can be difficult to obtain. The rest automatically download in the folder when needed.
 
 
+## Usage
+
+For a pre-trained map solution `f`, create an instance of FMGP as
+```python
+fmgp = FMGP(
+    model=copy.deepcopy(f),  # Copy of MAP-trained model
+    likelihood="regression",  # Regression setting
+    kernel="RBF",  # RBF kernel for GP
+    inducing_locations="kmeans",  # Use k-means to select inducing points
+    num_inducing=10,  # Number of inducing points
+    noise_variance=np.exp(-5),  # Initial noise variance
+    subrogate_regularizer=True,  # Use subrogate regularizer
+    y_mean=0,  # Mean of target
+    y_std=1,  # Standard deviation of target
+)
+```
+Train FMGP model with specified learning rate and iterations
+```python
+loss = fmgp.fit(iterations=70000, lr=0.001, train_loader=train_loader, verbose=True)
+```
+
+Predictions can be easily made as
+```python
+f_mean, f_var = fmgp.predict(torch.tensor(inputs))
+```
 
 ## Experiments reproducibility
 
@@ -83,70 +106,39 @@ The repository is structured in folders as:
 
 
 ```python
-python ./scripts/regression/map.py --verbose --dataset Year --net_structure 200 200 200 --MAP_iterations 20000
---iterations 40000 --split 0 --weight_decay 0.01 --bb_alpha 1 --seed 0 --dtype float64 --MAP_lr 0.01
-```
-
-```python
-python ./scripts/regression/lla.py --subset last_layer --hessian full --verbose --dataset Year
---net_structure 200 200 200 --MAP_iterations 20000 --iterations 40000 --split 0 --weight_decay 0.01
---bb_alpha 1 --seed 0 --dtype float64 --MAP_lr 0.01
-```
-
-
-```python
-python ./scripts/regression/ella.py --verbose --dataset Year --net_structure 200 200 200
---MAP_iterations 20000 --iterations 40000 --split 0 --num_inducing 2000 --weight_decay 0.01
---bb_alpha 1 --prior_std 1 --ll_log_va -5 --seed 0 --MAP_lr 0.01
-```
-
-```python
-python ./scripts/regression/valla.py --verbose --dataset Year --net_structure 200 200 200
---MAP_iterations 20000 --iterations 40000 --split 0 --num_inducing 100 --weight_decay 0.01
---bb_alpha 1 --seed 0 --dtype float64 --MAP_lr 0.01
-```
-> [!Important]  
-> Only `Year`, `Airline` and `Taxi` datasets can be used in these scripts. The settings for `hessian` and `subset` are `all` and `last_layer` and `full`, `kron` and `diag`.
-
-### MNIST/FMNIST
-
-Dataset options: MNIST and FMNIST
-
-```python
-python ./scripts/multiclass/map.py --verbose --dataset MNIST --MAP_iterations 20000 --iterations 40000
---test_ood --test_corruptions --split 0 --weight_decay 0.001 --bb_alpha 1 --seed 0 --MAP_lr 0.001
-```
-
-```python
-python ./scripts/multiclass/lla.py --hessian last_layer --subset full --verbose --dataset MNIST
---MAP_iterations 20000 --iterations 40000 --test_ood --test_corruptions --split 0 --weight_decay 0.001
- --bb_alpha 1 --seed 0 --MAP_lr 0.001
-```
-
-```python
-python ./scripts/multiclass/ella.py --verbose --dataset MNIST --MAP_iterations 20000 --iterations 40000
---test_ood --test_corruptions --split 0 --num_inducing 2000 --weight_decay 0.001 --bb_alpha 1
---prior_std 1 --seed 0 --MAP_lr 0.001
-```
-
-```python
-python ./scripts/multiclass/valla.py --verbose --dataset MNIST --MAP_iterations 20000 --iterations 40000
- --test_ood --test_corruptions --split 0 --num_inducing 100 --weight_decay 0.001 --bb_alpha 1
- --seed 0 --MAP_lr 0.001
+python ./scripts/regression/[method].py --dataset Year --seed 0
 ```
 
 > [!Important]  
-> Only `MNIST` and `FMNIST` datasets can be used in these scripts. The settings for `hessian` and `subset` are `all` and `last_layer` and `full`, `kron` and `diag`.
+> Only `Year`, `Airline` and `Taxi` datasets can be used in these scripts. The available methods are: `lla`, `ella`, `valla`, `map` and `fmgp`. 
 
-### ResNet
 
-ResNet options: Resnet20, ResNet32, ResNet44 and ResNet56
+### Cifar10
+
 
 ```python
-python ./scripts/multiclass_resnet/valla_backpack.py --verbose --batch_size 100 --dataset CIFAR10
- --MAP_iterations 50000 --iterations 40000 --split 0 --resnet resnet20 --num_inducing 100
---weight_decay 0.001 --bb_alpha 1 --seed 0 --test_ood --test_corruptions --MAP_lr 0.01 --device gpu
+python ./scripts/cifar10/[method].py --seed 0
 ```
 
 > [!Important]  
-> Only `CIFAR10` dataset can be used in these scripts. Resnet options are `resnet20`, `resnet32`, `resnet44` and `resnet56`.
+> The available methods are: `lla`, `ella`, `valla`, `map`, `mfvi`, `sngp` and `fmgp`. 
+
+### Imagenet
+
+
+```python
+python ./scripts/imagenet/[method].py --seed 0
+```
+
+> [!Important]  
+> The available methods are: `ella`, `map`, `mfvi` and `fmgp`. 
+
+### QM9
+
+
+```python
+python ./scripts/qm9/[method].py --seed 0
+```
+
+> [!Important]  
+> The available methods are: `lla`, `ella`, `map` and `fmgp`. The map solution can be obtained using `train_map.py`.
