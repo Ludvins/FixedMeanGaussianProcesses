@@ -1,0 +1,2 @@
+NLL,ACC,ECE,BRIER,method,train_time,test_time,resnet,initial_lr,scheduler_gamma,iterations,seed
+0.22747822213769023,0.9262,0.0075283353216946125,0.11091479485649347,fmgp slow,1303.7587382793427,2.951796531677246,resnet20,0.0001,0.85,50000,1
